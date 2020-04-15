@@ -57,7 +57,7 @@ app.post('/shortener', (req, res) => {
       if (shortener) {
         let link = ''
         link += req.headers.origin + '/' + shortener.shortenURL
-        console.log('link', link)
+        // console.log('link', link)
         res.render('shortener', { link })
 
       // 資料庫沒有該網址
@@ -70,7 +70,7 @@ app.post('/shortener', (req, res) => {
         shortener.save(err => {
           let link = ''
           link += req.headers.origin + '/' + shortenerCode
-          console.log('link', link)
+          // console.log('link', link)
           if (err) console.log(err)
           return res.render('shortener', { link })
         })
