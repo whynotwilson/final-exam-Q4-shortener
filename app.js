@@ -4,6 +4,7 @@ const port = 3000
 const exphbs = require('express-handlebars')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
+const Shortener = require('./models/shortener')
 
 // 設定 bodyParser, handlebars
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -34,8 +35,47 @@ app.get('/', (req, res) => {
   res.render('index')
 })
 
+app.get('/:id', (req, res) => {
+  Shortener.findOne({ shortenURL: req.params.id })
+    .exec((err, shortener) => {
+      if (err) console.log(err)
+      if (shortener) {
+        res.redirect(shortener.originalUrl)
+      } else {
+        res.render('index')
+      }
+    })
+})
+
 app.post('/shortener', (req, res) => {
-  res.render('shortener')
+  const url = req.body.url
+  Shortener.findOne({ originalUrl: url })
+    .lean()
+    .exec((err, shortener) => {
+      if (err) console.log(err)
+      // 資料庫有該網址
+      if (shortener) {
+        let link = ''
+        link += req.headers.origin + '/' + shortener.shortenURL
+        console.log('link', link)
+        res.render('shortener', { link })
+
+      // 資料庫沒有該網址
+      } else {
+        const shortenerCode = Math.random().toString(36).slice(-5)
+        const shortener = new Shortener({
+          shortenURL: shortenerCode,
+          originalUrl: url
+        })
+        shortener.save(err => {
+          let link = ''
+          link += req.headers.origin + '/' + shortenerCode
+          console.log('link', link)
+          if (err) console.log(err)
+          return res.render('shortener', { link })
+        })
+      }
+    })
 })
 
 app.listen(port, () => {
