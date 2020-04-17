@@ -73,7 +73,7 @@ app.post('/shortener', (req, res) => {
   }
   // 防止表單是空的
   if (!url) {
-    res.render('index')
+    res.render('index', { messages: 'URL 欄位未填' })
   } else {
     Shortener.findOne({ originalUrl: url })
       .lean()
