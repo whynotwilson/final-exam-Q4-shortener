@@ -49,20 +49,14 @@ app.get('/:id', (req, res) => {
 
 app.post('/shortener', (req, res) => {
   const url = req.body.url
-  Shortener.findOne({ originalUrl: url })
-    .lean()
-    .exec((err, shortener) => {
-      if (err) console.log(err)
-      // 資料庫有該網址
-      if (shortener) {
-        let link = ''
-        link += req.headers.origin + '/' + shortener.shortenURL
-        // console.log('link', link)
-        res.render('shortener', { link })
 
-      // 資料庫沒有該網址
+  const createRandomShortener = function () {
+    const shortenerCode = Math.random().toString(36).slice(-5)
+    Shortener.findOne({ shortenURL: shortenerCode }, (err, shortener) => {
+      if (err) console.log(err)
+      else if (shortener) {
+        return createRandomShortener()
       } else {
-        const shortenerCode = Math.random().toString(36).slice(-5)
         const shortener = new Shortener({
           shortenURL: shortenerCode,
           originalUrl: url
@@ -76,6 +70,29 @@ app.post('/shortener', (req, res) => {
         })
       }
     })
+  }
+  // 防止表單是空的
+  if (!url) {
+    res.render('index')
+  } else {
+    Shortener.findOne({ originalUrl: url })
+      .lean()
+      .exec((err, shortener) => {
+        if (err) console.log(err)
+        // 資料庫有該網址
+        if (shortener) {
+          let link = ''
+          link += req.headers.origin + '/' + shortener.shortenURL
+          // console.log('link', link)
+          res.render('shortener', { link })
+
+        // 資料庫沒有該網址
+        } else {
+          // 防止重複短網址
+          createRandomShortener()
+        }
+      })
+  }
 })
 
 app.listen(port, () => {
