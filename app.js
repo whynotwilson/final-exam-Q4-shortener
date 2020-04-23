@@ -48,7 +48,10 @@ app.get('/:id', (req, res) => {
 })
 
 app.post('/shortener', (req, res) => {
-  const url = req.body.url
+  let url = req.body.url
+  if (!(url.includes('http') || url.includes('https'))) {
+    url = 'https://' + url
+  }
 
   const createRandomShortener = function () {
     const shortenerCode = Math.random().toString(36).slice(-5)
